@@ -1,1 +1,1 @@
-./build/ocr_system ./tools/config.txt /home/bitmain/anbl/git2/PaddleOCR/doc/imgs/2.jpg
+./build/ocr_system ./tools/config.txt test.jpg

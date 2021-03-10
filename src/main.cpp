@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
                  config.det_db_thresh, config.det_db_box_thresh,
                  config.det_db_unclip_ratio, config.visualize);
 
-  CRNNRecognizer rec(config.rec_model_dir, config.rec_bmodel_path,
+  CRNNRecognizer rec(config.rec_model_dir,
              config.device_id, config.cpu_math_library_num_threads,
              config.char_list_file);
 

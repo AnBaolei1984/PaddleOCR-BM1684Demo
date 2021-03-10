@@ -7,12 +7,11 @@ max_side_len  640
 det_db_thresh  0.3
 det_db_box_thresh  0.5
 det_db_unclip_ratio  1.6
-det_bmodel_path  ./inference/det_db.bmodel
+det_bmodel_path  ./models/det_db.bmodel
 
 # rec config
-rec_bmodel_path ./inference/rec_crnn.bmodel
-rec_model_dir ./inference/pprec
-char_list_file ./inference/ppocr_keys_v1.txt
+rec_model_dir ./models/rec_crnn
+char_list_file ./models/ppocr_keys_v1.txt
 
 # show the detection results
 visualize 1

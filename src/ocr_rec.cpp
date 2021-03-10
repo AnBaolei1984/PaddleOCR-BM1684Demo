@@ -29,43 +29,17 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     crop_img = GetRotateCropImage(srcimg, boxes[i]);
     float wh_ratio = float(crop_img.cols) / float(crop_img.rows);
     this->resize_op_.Run(crop_img, resize_img, wh_ratio);
-    if (resize_img.cols > 320) {
-      std::cout << "text too long, ignore this for the moment. " << std::endl;
-      continue;
-    }
-    cv::Mat real_input_img(32, 320, CV_8UC3, cv::Scalar(0, 0, 0));
-    resize_img.copyTo(real_input_img(cv::Rect(0,
-                                   0, resize_img.cols, resize_img.rows)));
     this->normalize_op_.Run(&resize_img, this->mean_, this->scale_,
                             this->is_scale_);
     std::vector<float> input(1 * 3 * resize_img.rows * resize_img.cols, 0.0f);
     this->permute_op_.Run(&resize_img, input.data());
-    vector<float*> inputs;
-    vector<float*> results;
-    inputs.push_back(input.data());
 
-    vector<vector<int>> output_shapes;
-    bm_ocr_rec_->run(inputs, output_shapes, results);
-
-    std::vector<std::vector<size_t>> lods;
-    std::vector<size_t> lod;
-    for (size_t i = 0; i <= 80; i++) {
-      lod.push_back(i);
-    }
-    lods.push_back(lod);
-
-    auto input_names = predictor_->GetInputNames();
-    auto input_t1 = predictor_->GetInputTensor(input_names[0]);
-    input_t1->SetLoD(lods);
-    input_t1->Reshape({output_shapes[0][0], output_shapes[0][1]});
-    input_t1->copy_from_cpu(results[0]);
-
-    auto input_t2 = predictor_->GetInputTensor(input_names[1]);
-    input_t2->Reshape({output_shapes[1][0], output_shapes[1][1]});
-    input_t2->SetLoD(lods);
-    input_t2->copy_from_cpu(results[1]);
+    auto input_names = this->predictor_->GetInputNames();
+    auto input_t = this->predictor_->GetInputTensor(input_names[0]);
+    input_t->Reshape({1, 3, resize_img.rows, resize_img.cols});
+    input_t->copy_from_cpu(input.data());
     this->predictor_->ZeroCopyRun();
-
+ 
     std::vector<int64_t> rec_idx;
     auto output_names = this->predictor_->GetOutputNames();
     auto output_t = this->predictor_->GetOutputTensor(output_names[0]);
@@ -75,7 +49,6 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     int out_num = std::accumulate(shape_out.begin(), shape_out.end(), 1,
                                   std::multiplies<int>());
 
-    std::cout << out_num << std::endl;
     rec_idx.resize(out_num);
     output_t->copy_to_cpu(rec_idx.data());
 
@@ -83,6 +56,7 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     for (int n = int(rec_idx_lod[0][0]); n < int(rec_idx_lod[0][1]); n++) {
       pred_idx.push_back(int(rec_idx[n]));
     }
+
     if (pred_idx.size() < 1e-3)
       continue;
 
@@ -128,7 +102,7 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
 
 void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   AnalysisConfig config;
-  config.SetModel(model_dir);
+  config.SetModel(model_dir + "/model", model_dir + "/params");
   config.DisableGpu();
   config.SetCpuMathLibraryNumThreads(this->cpu_math_library_num_threads_);
   config.SwitchUseFeedFetchOps(false);

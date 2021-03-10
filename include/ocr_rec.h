@@ -30,14 +30,12 @@
 #include <include/postprocess_op.h>
 #include <include/preprocess_op.h>
 #include <include/utility.h>
-#include <include/ocr_rec_bm.hpp>
 
 namespace BMPaddleOCR {
 
 class CRNNRecognizer {
 public:
   explicit CRNNRecognizer(const std::string &model_dir,
-                          const std::string &bmodel_path,
                           const int &device_id,
                           const int &cpu_math_library_num_threads,
                           const string &label_path) {
@@ -45,10 +43,6 @@ public:
     this->cpu_math_library_num_threads_ = cpu_math_library_num_threads;
     this->label_list_ = Utility::ReadDict(label_path);
     this->label_list_.push_back(" ");
-
-    std::shared_ptr<BMOCRRec> rec_ptr(new BMOCRRec(bmodel_path, device_id));
-    sp_rec_ptr_ = rec_ptr;
-    bm_ocr_rec_ = sp_rec_ptr_.get();
 
     LoadModel(model_dir);
   }
@@ -72,9 +66,6 @@ private:
   CrnnResizeImg resize_op_;
   Normalize normalize_op_;
   Permute permute_op_;
-
-  BMOCRRec* bm_ocr_rec_;
-  std::shared_ptr<BMOCRRec> sp_rec_ptr_;
 
   // post-process
   PostProcessor post_processor_;

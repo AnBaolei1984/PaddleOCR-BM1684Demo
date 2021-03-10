@@ -40,7 +40,6 @@ public:
     this->det_db_unclip_ratio = stod(config_map_["det_db_unclip_ratio"]);
     this->det_bmodel_path.assign(config_map_["det_bmodel_path"]);
     this->rec_model_dir.assign(config_map_["rec_model_dir"]);
-    this->rec_bmodel_path.assign(config_map_["rec_bmodel_path"]);
 
     this->char_list_file.assign(config_map_["char_list_file"]);
     this->visualize = bool(stoi(config_map_["visualize"]));
@@ -54,7 +53,6 @@ public:
   double det_db_unclip_ratio = 2.0;
   std::string det_bmodel_path;
   std::string rec_model_dir;
-  std::string rec_bmodel_path;
   std::string char_list_file;
   bool visualize = true;
 
