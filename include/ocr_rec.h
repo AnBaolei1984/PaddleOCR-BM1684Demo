@@ -16,7 +16,6 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "paddle_api.h"
-#include "paddle_inference_api.h"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -30,6 +29,12 @@
 #include <include/postprocess_op.h>
 #include <include/preprocess_op.h>
 #include <include/utility.h>
+
+#ifndef SOC_MODE
+#include "paddle_inference_api.h"
+#else
+using namespace paddle::lite_api;
+#endif
 
 namespace BMPaddleOCR {
 

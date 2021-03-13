@@ -27,8 +27,14 @@
 #include <fstream>
 #include <numeric>
 
+#include "paddle_api.h"
 using namespace std;
+#ifndef SOC_MODE
+#include "paddle_inference_api.h"
 using namespace paddle;
+#else
+using namespace paddle::lite_api;
+#endif
 
 namespace BMPaddleOCR {
 

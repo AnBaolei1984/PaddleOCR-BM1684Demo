@@ -35,22 +35,42 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     this->permute_op_.Run(&resize_img, input.data());
 
     auto input_names = this->predictor_->GetInputNames();
+#ifndef SOC_MODE
     auto input_t = this->predictor_->GetInputTensor(input_names[0]);
     input_t->Reshape({1, 3, resize_img.rows, resize_img.cols});
     input_t->copy_from_cpu(input.data());
     this->predictor_->ZeroCopyRun();
+#else
+    auto input_t = this->predictor_->GetInput(0);
+    input_t->Resize({1, 3, resize_img.rows, resize_img.cols});
+    input_t->CopyFromCpu(input.data());
+    this->predictor_->Run();
+#endif
  
     std::vector<int64_t> rec_idx;
     auto output_names = this->predictor_->GetOutputNames();
+#ifndef SOC_MODE
     auto output_t = this->predictor_->GetOutputTensor(output_names[0]);
+    auto output_t_1 = this->predictor_->GetOutputTensor(output_names[1]);
+#else
+    auto output_t = this->predictor_->GetOutput(0);
+    auto output_t_1 = this->predictor_->GetOutput(1);
+#endif
     auto rec_idx_lod = output_t->lod();
     auto shape_out = output_t->shape();
-
     int out_num = std::accumulate(shape_out.begin(), shape_out.end(), 1,
                                   std::multiplies<int>());
 
     rec_idx.resize(out_num);
+#ifndef SOC_MODE
     output_t->copy_to_cpu(rec_idx.data());
+#else
+    auto* out_ptr = output_t->mutable_data<long>();
+    for (int j = 0; j < out_num; j++) {
+      rec_idx[j] = out_ptr[j];
+    }
+    //output_t->CopyToCpu(rec_idx.data());
+#endif
 
     std::vector<int> pred_idx;
     for (int n = int(rec_idx_lod[0][0]); n < int(rec_idx_lod[0][1]); n++) {
@@ -67,16 +87,17 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     }
 
     std::vector<float> predict_batch;
-    auto output_t_1 = this->predictor_->GetOutputTensor(output_names[1]);
-
     auto predict_lod = output_t_1->lod();
     auto predict_shape = output_t_1->shape();
     int out_num_1 = std::accumulate(predict_shape.begin(), predict_shape.end(),
                                     1, std::multiplies<int>());
 
     predict_batch.resize(out_num_1);
+#ifndef SOC_MODE
     output_t_1->copy_to_cpu(predict_batch.data());
-
+#else
+    output_t_1->CopyToCpu(predict_batch.data());
+#endif
     int argmax_idx;
     int blank = predict_shape[1];
     float score = 0.f;
@@ -101,8 +122,14 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
 }
 
 void CRNNRecognizer::LoadModel(const std::string &model_dir) {
+#ifndef SOC_MODE
   AnalysisConfig config;
   config.SetModel(model_dir + "/model", model_dir + "/params");
+#else
+  MobileConfig config;
+  config.set_model_dir(model_dir);
+#endif
+#ifndef SOC_MODE
   config.DisableGpu();
   config.SetCpuMathLibraryNumThreads(this->cpu_math_library_num_threads_);
   config.SwitchUseFeedFetchOps(false);
@@ -110,6 +137,7 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.SwitchIrOptim(true);
   config.EnableMemoryOptim();
   config.DisableGlogInfo();
+#endif
 
   this->predictor_ = CreatePaddlePredictor(config);
 }
