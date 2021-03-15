@@ -1,6 +1,7 @@
 option(WITH_STATIC_LIB "Compile demo with static/shared library, default use static."   ON)
 option(SOC_MODE "Compile demo with pcie or soc mode, default use pcie."   OFF)
 
+
 SET(PADDLE_LIB "" CACHE PATH "Location of libraries")
 SET(OPENCV_DIR "" CACHE PATH "Location of libraries")
 SET(BM_LIB "" CACHE PATH "Location of libraries")
@@ -87,7 +88,8 @@ endif()
 if(WITH_STATIC_LIB)
   if(SOC_MODE)
     set(DEPS
-    ${PADDLE_LIB}/paddle/lib/libpaddle_api_light_bundled${CMAKE_STATIC_LIBRARY_SUFFIX})
+    #${PADDLE_LIB}/paddle/lib/libpaddle_api_light_bundled${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${PADDLE_LIB}/paddle/lib/libpaddle_api_full_bundled${CMAKE_STATIC_LIBRARY_SUFFIX})
   else()
     set(DEPS
       ${PADDLE_LIB}/paddle/lib/libpaddle_fluid${CMAKE_STATIC_LIBRARY_SUFFIX})
