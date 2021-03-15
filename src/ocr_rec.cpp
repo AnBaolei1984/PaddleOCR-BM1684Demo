@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <include/ocr_rec.h>
+#include "paddle_use_kernels.h"
+#include "paddle_use_ops.h"
 
 namespace BMPaddleOCR {
 
@@ -35,6 +37,7 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     this->permute_op_.Run(&resize_img, input.data());
 
     auto input_names = this->predictor_->GetInputNames();
+    std::cout << "input name" << input_names[0]<<std::endl;
 #ifndef SOC_MODE
     auto input_t = this->predictor_->GetInputTensor(input_names[0]);
     input_t->Reshape({1, 3, resize_img.rows, resize_img.cols});
@@ -126,8 +129,11 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   AnalysisConfig config;
   config.SetModel(model_dir + "/model", model_dir + "/params");
 #else
-  MobileConfig config;
-  config.set_model_dir(model_dir);
+  CxxConfig config;
+  config.set_model_file(model_dir + "/model");
+  config.set_param_file(model_dir + "/params");
+  std::vector<Place> valid_places{Place{TARGET(kARM), PRECISION(kFloat)}};
+  config.set_valid_places(valid_places);
 #endif
 #ifndef SOC_MODE
   config.DisableGpu();
@@ -139,7 +145,13 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.DisableGlogInfo();
 #endif
 
+  std::cout << "create predictor befor!" << std::endl;
   this->predictor_ = CreatePaddlePredictor(config);
+  std::cout << "create predictor success!" << std::endl;
+#ifdef SOC_MODE
+  predictor_->SaveOptimizedModel(".",
+                                LiteModelType::kNaiveBuffer);
+#endif
 }
 
 cv::Mat CRNNRecognizer::GetRotateCropImage(const cv::Mat &srcimage,
