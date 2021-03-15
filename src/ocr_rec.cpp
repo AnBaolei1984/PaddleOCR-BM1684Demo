@@ -133,6 +133,8 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.set_model_file(model_dir + "/model");
   config.set_param_file(model_dir + "/params");
   std::vector<Place> valid_places{Place{TARGET(kARM), PRECISION(kFloat)}};
+  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt64)});
+  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt32)});
   config.set_valid_places(valid_places);
 #endif
 #ifndef SOC_MODE
