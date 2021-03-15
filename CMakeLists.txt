@@ -2,8 +2,6 @@ option(WITH_STATIC_LIB "Compile demo with static/shared library, default use sta
 option(SOC_MODE "Compile demo with pcie or soc mode, default use pcie."   OFF)
 
 
-set(CMAKE_BUILD_TYPE "Debug")
-
 SET(PADDLE_LIB "" CACHE PATH "Location of libraries")
 SET(OPENCV_DIR "" CACHE PATH "Location of libraries")
 SET(BM_LIB "" CACHE PATH "Location of libraries")

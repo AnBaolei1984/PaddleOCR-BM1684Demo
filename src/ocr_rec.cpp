@@ -145,9 +145,7 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.DisableGlogInfo();
 #endif
 
-  std::cout << "create predictor befor!" << std::endl;
   this->predictor_ = CreatePaddlePredictor(config);
-  std::cout << "create predictor success!" << std::endl;
 #ifdef SOC_MODE
   predictor_->SaveOptimizedModel(".",
                                 LiteModelType::kNaiveBuffer);
