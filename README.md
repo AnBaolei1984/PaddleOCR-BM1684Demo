@@ -1,33 +1,24 @@
 # PaddleOCR-CppDemo
-这个是在比特大陆BM1684系列AI硬件上支持PaddleOCR的demo
+这个是在比特大陆BM1684系列AI硬件上支持PaddleOCR的demo,可以支持x86和arm两种设备
 
-1. 配置依赖库路径
+## 配置依赖库路径
+### x86 配置如下
+![1615867224(1)](https://user-images.githubusercontent.com/19307549/111254095-48fcd680-864f-11eb-8fc1-eda17535b97a.jpg)
 
-LIB_DIR=/project/Paddle_Lite_libs/  
-BM_DIR=/workspace/
 
-BUILD_DIR=build  
-rm -rf ${BUILD_DIR}  
-mkdir ${BUILD_DIR}  
-cd ${BUILD_DIR}  
+### arm 配置如下
+![1615867117(1)](https://user-images.githubusercontent.com/19307549/111253964-0affb280-864f-11eb-9d37-f2e8f87cf33b.jpg)
 
-cmake .. \
-        -DPADDLE_LIB=${LIB_DIR} \
-        -DWITH_STATIC_LIB=ON \
-        -DSOC_MODE=ON \
-        -DBM_LIB=${BM_DIR} \
-
-make -j
 
 其中分别设置：
 LIB_DIR为paddle的库路径  
 BM_DIR为比特大陆bmnnsdk2的路径。
 
-2. 编译
+## 编译
 
 执行 sh tools/build.sh
 
-3. 运行
+## 运行
 
 sh tools/run.sh
 
