@@ -12,10 +12,10 @@ mkdir ${BUILD_DIR}
 cd ${BUILD_DIR}  
 
 cmake .. \
-    -DPADDLE_LIB=${LIB_DIR} \
-    -DWITH_STATIC_LIB=ON \
-    -DSOC_MODE=ON \
-    -DBM_LIB=${BM_DIR} \
+        -DPADDLE_LIB=${LIB_DIR} \
+        -DWITH_STATIC_LIB=ON \
+        -DSOC_MODE=ON \
+        -DBM_LIB=${BM_DIR} \
 
 make -j
 
