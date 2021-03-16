@@ -2,7 +2,7 @@
 这个是在比特大陆BM1684系列AI硬件上支持PaddleOCR的demo
 
 1. 配置依赖库路径
-2. 
+
 LIB_DIR=/project/Paddle_Lite_libs/
 BM_DIR=/workspace/
 
