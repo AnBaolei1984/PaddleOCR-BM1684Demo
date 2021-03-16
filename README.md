@@ -18,7 +18,8 @@
 
 ## 编译
 
-执行 sh tools/build.sh
+- **编译x86执行 sh tools/build_x86.sh**
+- **编译arm执行 sh tools/build_arm.sh**
 
 ## 运行
 
