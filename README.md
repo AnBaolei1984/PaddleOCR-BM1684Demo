@@ -7,10 +7,10 @@ LIB_DIR=/project/Paddle_Lite_libs/
 
 BM_DIR=/workspace/
 
-BUILD_DIR=build
-rm -rf ${BUILD_DIR}
-mkdir ${BUILD_DIR}
-cd ${BUILD_DIR}
+BUILD_DIR=build  
+rm -rf ${BUILD_DIR}  
+mkdir ${BUILD_DIR}  
+cd ${BUILD_DIR}  
 cmake .. \
     -DPADDLE_LIB=${LIB_DIR} \
     -DWITH_STATIC_LIB=ON \
