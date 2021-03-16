@@ -4,6 +4,7 @@
 1. 配置依赖库路径
 
 LIB_DIR=/project/Paddle_Lite_libs/
+
 BM_DIR=/workspace/
 
 BUILD_DIR=build
