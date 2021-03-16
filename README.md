@@ -3,14 +3,14 @@
 
 1. 配置依赖库路径
 
-LIB_DIR=/project/Paddle_Lite_libs/
-
+LIB_DIR=/project/Paddle_Lite_libs/  
 BM_DIR=/workspace/
 
 BUILD_DIR=build  
 rm -rf ${BUILD_DIR}  
 mkdir ${BUILD_DIR}  
 cd ${BUILD_DIR}  
+
 cmake .. \
     -DPADDLE_LIB=${LIB_DIR} \
     -DWITH_STATIC_LIB=ON \
@@ -19,7 +19,7 @@ cmake .. \
 
 make -j
 
-分别设置：
+其中分别设置：
 LIB_DIR为paddle的库路径  
 BM_DIR为比特大陆bmnnsdk2的路径。
 
