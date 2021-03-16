@@ -2,10 +2,25 @@
 这个是在比特大陆BM1684系列AI硬件上支持PaddleOCR的demo
 
 1. 配置依赖库路径
+2. 
+LIB_DIR=/project/Paddle_Lite_libs/
+BM_DIR=/workspace/
 
-![1811615380904_ pic_hd](https://user-images.githubusercontent.com/49897975/110633899-4ed46100-81e4-11eb-8b06-2e46ebdd81aa.jpg)
+BUILD_DIR=build
+rm -rf ${BUILD_DIR}
+mkdir ${BUILD_DIR}
+cd ${BUILD_DIR}
+cmake .. \
+    -DPADDLE_LIB=${LIB_DIR} \
+    -DWITH_STATIC_LIB=ON \
+    -DSOC_MODE=ON \
+    -DBM_LIB=${BM_DIR} \
 
-分别设置opencv、paddle_inference和比特大陆bmnnsdk2的路径。
+make -j
+
+分别设置：
+LIB_DIR为paddle的库路径  
+BM_DIR为比特大陆bmnnsdk2的路径。
 
 2. 编译
 
