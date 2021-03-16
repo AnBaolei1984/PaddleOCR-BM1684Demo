@@ -7,10 +7,11 @@
 
 
 ### arm 配置如下
-![1615867117(1)](https://user-images.githubusercontent.com/19307549/111253964-0affb280-864f-11eb-9d37-f2e8f87cf33b.jpg)
+![1615867408(1)](https://user-images.githubusercontent.com/19307549/111254298-b3ae1200-864f-11eb-95a8-3afcca7f8123.jpg)
 
 
-其中分别设置：
+
+其中分别设置：  
 LIB_DIR为paddle的库路径  
 BM_DIR为比特大陆bmnnsdk2的路径。
 
