@@ -11,9 +11,10 @@
 
 
 
-其中分别设置：  
-LIB_DIR为paddle的库路径  
-BM_DIR为比特大陆bmnnsdk2的路径。
+- **其中分别设置**:  
+    - **LIB_DIR为paddle的库路径**
+    - **BM_DIR为比特大陆bmnnsdk2的路径**
+  
 
 ## 编译
 
