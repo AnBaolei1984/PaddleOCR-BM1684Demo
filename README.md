@@ -14,7 +14,8 @@
 
  paddle的模型在x86上推理是padddle_inference实现，编译padddle_inference请参考（https://www.paddlepaddle.org.cn/documentation/docs/zh/guides/05_inference_deployment/inference/build_and_install_lib_cn.html#congyuanmabianyi）。
 
-在arm上，paddle模型的推理是基于Paddle-Lite来实现。我们提供了编译好的PaddleLite预测库（链接：https://pan.baidu.com/s/17eZj0M0LTmpIixtKKmpDbw 提取码：2gy6 ）
+在arm上，paddle模型的推理是基于Paddle-Lite来实现。我们提供了编译好的PaddleLite预测库（链接：https://pan.baidu.com/s/1dyy7VA3sdGLD7VZ3qJZclg 
+提取码：1234）
 
 
 ![1941616380438_ pic_hd](https://user-images.githubusercontent.com/49897975/111933306-1e50c900-8afa-11eb-9c8c-9e1f5e4480b0.jpg)
