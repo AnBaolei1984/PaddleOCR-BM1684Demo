@@ -145,7 +145,7 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.SwitchIrOptim(true);
   config.EnableMemoryOptim();
   config.DisableGlogInfo();
-#esle
+#else
   config.set_threads(this->cpu_math_library_num_threads_);
 #endif
 
