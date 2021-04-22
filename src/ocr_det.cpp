@@ -21,27 +21,21 @@ void DBDetector::Run(cv::Mat &img,
                      std::vector<std::vector<std::vector<int>>> &boxes) {
   float ratio_h{};
   float ratio_w{};
-
   cv::Mat srcimg;
   cv::Mat resize_img;
-  img.copyTo(srcimg);
 
+  img.copyTo(srcimg);
   this->resize_op_.Run(img, resize_img, this->max_side_len_, ratio_h, ratio_w);
   cv::Mat real_input_img(640, 640, CV_8UC3, cv::Scalar(0, 0, 0));
   resize_img.copyTo(real_input_img(cv::Rect(0,
                                    0, resize_img.cols, resize_img.rows)));
-  this->normalize_op_.Run(&real_input_img,
-                           this->mean_, this->scale_, this->is_scale_);
+  vector<cv::Mat> inputs;
+  inputs.push_back(real_input_img);
+  bm_ocr_det_->preprocess(inputs, this->mean_, this->scale_, this->is_scale_);
 
-  std::vector<float> input(1 * 3 * 640 * 640, 0.0f);
-  this->permute_op_.Run(&real_input_img, input.data());
- 
-  vector<float*> inputs;
   vector<float*> results;
-  inputs.push_back(input.data());
-
   vector<vector<int>> output_shapes;
-  bm_ocr_det_->run(inputs, output_shapes, results);
+  bm_ocr_det_->run(output_shapes, results);
 
   vector<int> output_shape = output_shapes[0];
   int out_num = accumulate(output_shape.begin(), output_shape.end(), 1,
@@ -73,7 +67,6 @@ void DBDetector::Run(cv::Mat &img,
       pred_map, dilation_map, this->det_db_box_thresh_, this->det_db_unclip_ratio_);
 
   boxes = post_processor_.FilterTagDetRes(boxes, ratio_h, ratio_w, srcimg);
-
   //// visualization
   if (this->visualize_) {
     Utility::VisualizeBboxes(srcimg, boxes);

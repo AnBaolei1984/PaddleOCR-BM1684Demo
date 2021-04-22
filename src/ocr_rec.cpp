@@ -31,13 +31,13 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     crop_img = GetRotateCropImage(srcimg, boxes[i]);
     float wh_ratio = float(crop_img.cols) / float(crop_img.rows);
     this->resize_op_.Run(crop_img, resize_img, wh_ratio);
-    this->normalize_op_.Run(&resize_img, this->mean_, this->scale_,
-                            this->is_scale_);
-    std::vector<float> input(1 * 3 * resize_img.rows * resize_img.cols, 0.0f);
-    this->permute_op_.Run(&resize_img, input.data());
 
+    std::vector<float> input(1 * 3 * resize_img.rows * resize_img.cols, 0.0f);
+    bm_preprocess_->Permute_Normalize(resize_img, this->mean_, this->scale_,
+                            this->is_scale_, input.data());
+  
     auto input_names = this->predictor_->GetInputNames();
-    std::cout << "input name" << input_names[0]<<std::endl;
+    //auto start = std::chrono::system_clock::now();
 #ifndef SOC_MODE
     auto input_t = this->predictor_->GetInputTensor(input_names[0]);
     input_t->Reshape({1, 3, resize_img.rows, resize_img.cols});
@@ -49,6 +49,14 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     input_t->CopyFromCpu(input.data());
     this->predictor_->Run();
 #endif
+   // auto end = std::chrono::system_clock::now();
+    //auto duration =
+      //std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    //std::cout << " cost "
+      //      << double(duration.count()) *
+        //           std::chrono::microseconds::period::num /
+          //         std::chrono::microseconds::period::den
+          //  << "s" << std::endl;
  
     std::vector<int64_t> rec_idx;
     auto output_names = this->predictor_->GetOutputNames();

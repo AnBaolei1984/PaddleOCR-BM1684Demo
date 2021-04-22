@@ -45,8 +45,6 @@ int main(int argc, char **argv) {
   config.PrintConfigInfo();
   std::string img_path(argv[2]);
 
-  cv::Mat srcimg = cv::imread(img_path, cv::IMREAD_COLOR);
-
   DBDetector det(config.det_bmodel_path, config.device_id, config.max_side_len,
                  config.det_db_thresh, config.det_db_box_thresh,
                  config.det_db_unclip_ratio, config.visualize);
@@ -55,18 +53,34 @@ int main(int argc, char **argv) {
              config.device_id, config.cpu_math_library_num_threads,
              config.char_list_file);
 
+  cv::Mat srcimg = cv::imread(img_path, cv::IMREAD_COLOR, 0);
   auto start = std::chrono::system_clock::now();
   std::vector<std::vector<std::vector<int>>> boxes;
   det.Run(srcimg, boxes);
-  rec.Run(boxes, srcimg);
   auto end = std::chrono::system_clock::now();
-  auto duration =
+  auto duration_det =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << "花费了"
-            << double(duration.count()) *
+
+  start = std::chrono::system_clock::now();
+  rec.Run(boxes, srcimg);
+  end = std::chrono::system_clock::now();
+  auto duration_rec =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "det cost "
+            << double(duration_det.count()) *
                    std::chrono::microseconds::period::num /
                    std::chrono::microseconds::period::den
-            << "秒" << std::endl;
+            << "s" << std::endl;
+  std::cout << "rec cost "
+            << double(duration_rec.count()) *
+                   std::chrono::microseconds::period::num /
+                   std::chrono::microseconds::period::den
+            << "s" << std::endl;
+  std::cout << "total cost "
+            << double(duration_rec.count() + duration_det.count()) *
+                   std::chrono::microseconds::period::num /
+                   std::chrono::microseconds::period::den
+            << "s" << std::endl;
 
   return 0;
 }

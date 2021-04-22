@@ -11,6 +11,9 @@
 
 #include <cstring>
 #include <memory>
+#include "opencv2/core.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 #include "bmodel_base.hpp"
 
 namespace BMPaddleOCR {
@@ -21,8 +24,11 @@ public:
   BMOCRDet(const std::string bmodel, int device_id);
   ~BMOCRDet();
 
-  bool run(const std::vector<float*>& inputs,
-            std::vector<std::vector<int>>& output_shapes,
+  bool preprocess(std::vector<cv::Mat>& in_img,
+            const std::vector<float>& mean,
+            const std::vector<float>& scale, bool is_scale = true);
+
+  bool run(std::vector<std::vector<int>>& output_shapes,
             std::vector<float*>& results);
 };
 } // namespace BMPaddleOCR

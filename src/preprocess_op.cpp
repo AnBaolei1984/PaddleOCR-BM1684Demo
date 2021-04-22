@@ -15,8 +15,6 @@
 #include "opencv2/core.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
-//#include "paddle_api.h"
-//#include "paddle_inference_api.h"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -137,5 +135,4 @@ void ClsResizeImg::Run(const cv::Mat &img, cv::Mat &resize_img,
                        cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
   }
 }
-
 } // namespace PaddleOCR
