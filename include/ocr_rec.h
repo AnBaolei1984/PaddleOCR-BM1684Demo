@@ -29,7 +29,7 @@
 #include <include/postprocess_op.h>
 #include <include/preprocess_op.h>
 #include <include/utility.h>
-#include <include/preprocess_bm.hpp>
+#include <include/ocr_rec_bm.hpp>
 
 #ifndef SOC_MODE
 #include "paddle_inference_api.h"
@@ -50,9 +50,10 @@ public:
     this->label_list_ = Utility::ReadDict(label_path);
     this->label_list_.push_back(" ");
 
-    std::shared_ptr<PreprocessBM> pre_ptr(new PreprocessBM(device_id));
-    sp_bm_preprocess_ptr_ = pre_ptr;
-    bm_preprocess_ = sp_bm_preprocess_ptr_.get();
+    std::string bmodel_path = model_dir + "/rec_cnn.bmodel";
+    std::shared_ptr<BMOCRRec> rec_ptr(new BMOCRRec(bmodel_path, device_id));
+    sp_rec_ptr_ = rec_ptr;
+    bm_ocr_rec_ = sp_rec_ptr_.get();
 
     LoadModel(model_dir);
   }
@@ -77,8 +78,8 @@ private:
   Normalize normalize_op_;
   Permute permute_op_;
 
-  PreprocessBM* bm_preprocess_;
-  std::shared_ptr<PreprocessBM> sp_bm_preprocess_ptr_;
+  BMOCRRec* bm_ocr_rec_;
+  std::shared_ptr<BMOCRRec> sp_rec_ptr_;
 
   // post-process
   PostProcessor post_processor_;

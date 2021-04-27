@@ -30,6 +30,7 @@ public:
 
   bool run(std::vector<std::vector<int>>& output_shapes,
             std::vector<float*>& results);
+
 };
 } // namespace BMPaddleOCR
 

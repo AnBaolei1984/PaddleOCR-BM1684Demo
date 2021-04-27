@@ -14,6 +14,7 @@ BmodelBase::~BmodelBase() {
   if (batch_size_ >= 1) {
     bm_image_destroy_batch(scaled_inputs_, batch_size_);
   }
+
   if (scaled_inputs_) {
     delete []scaled_inputs_;
   }

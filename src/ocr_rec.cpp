@@ -32,32 +32,27 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     float wh_ratio = float(crop_img.cols) / float(crop_img.rows);
     this->resize_op_.Run(crop_img, resize_img, wh_ratio);
 
-    std::vector<float> input(1 * 3 * resize_img.rows * resize_img.cols, 0.0f);
-    bm_preprocess_->Permute_Normalize(resize_img, this->mean_, this->scale_,
-                            this->is_scale_, input.data());
-  
+    vector<cv::Mat> inputs;
+    inputs.push_back(resize_img);
+    bm_ocr_rec_->preprocess(inputs, this->mean_, this->scale_, this->is_scale_);
+    vector<float*> results;
+    vector<vector<int>> output_shapes;
+    bm_ocr_rec_->run(output_shapes, results);
     auto input_names = this->predictor_->GetInputNames();
-    //auto start = std::chrono::system_clock::now();
 #ifndef SOC_MODE
     auto input_t = this->predictor_->GetInputTensor(input_names[0]);
-    input_t->Reshape({1, 3, resize_img.rows, resize_img.cols});
-    input_t->copy_from_cpu(input.data());
+    input_t->Reshape({output_shapes[0][0], output_shapes[0][1],
+                        output_shapes[0][2], output_shapes[0][3]});
+    input_t->copy_from_cpu(results[0]);
     this->predictor_->ZeroCopyRun();
 #else
     auto input_t = this->predictor_->GetInput(0);
-    input_t->Resize({1, 3, resize_img.rows, resize_img.cols});
-    input_t->CopyFromCpu(input.data());
+    input_t->Resize({output_shapes[0][0], output_shapes[0][1],
+                        output_shapes[0][2], output_shapes[0][3]});
+    input_t->CopyFromCpu(results[0]);
     this->predictor_->Run();
 #endif
-   // auto end = std::chrono::system_clock::now();
-    //auto duration =
-      //std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    //std::cout << " cost "
-      //      << double(duration.count()) *
-        //           std::chrono::microseconds::period::num /
-          //         std::chrono::microseconds::period::den
-          //  << "s" << std::endl;
- 
+
     std::vector<int64_t> rec_idx;
     auto output_names = this->predictor_->GetOutputNames();
 #ifndef SOC_MODE
@@ -71,7 +66,6 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     auto shape_out = output_t->shape();
     int out_num = std::accumulate(shape_out.begin(), shape_out.end(), 1,
                                   std::multiplies<int>());
-
     rec_idx.resize(out_num);
 #ifndef SOC_MODE
     output_t->copy_to_cpu(rec_idx.data());
@@ -80,9 +74,7 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     for (int j = 0; j < out_num; j++) {
       rec_idx[j] = out_ptr[j];
     }
-    //output_t->CopyToCpu(rec_idx.data());
 #endif
-
     std::vector<int> pred_idx;
     for (int n = int(rec_idx_lod[0][0]); n < int(rec_idx_lod[0][1]); n++) {
       pred_idx.push_back(int(rec_idx[n]));
@@ -102,7 +94,6 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     auto predict_shape = output_t_1->shape();
     int out_num_1 = std::accumulate(predict_shape.begin(), predict_shape.end(),
                                     1, std::multiplies<int>());
-
     predict_batch.resize(out_num_1);
 #ifndef SOC_MODE
     output_t_1->copy_to_cpu(predict_batch.data());
@@ -114,15 +105,15 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     float score = 0.f;
     int count = 0;
     float max_value = 0.0f;
-
     for (int n = predict_lod[0][0]; n < predict_lod[0][1] - 1; n++) {
       argmax_idx =
           int(Utility::argmax(&predict_batch[n * predict_shape[1]],
                               &predict_batch[(n + 1) * predict_shape[1]]));
-      max_value =
-          float(*std::max_element(&predict_batch[n * predict_shape[1]],
-                                  &predict_batch[(n + 1) * predict_shape[1]]));
       if (blank - 1 - argmax_idx > 1e-5) {
+        max_value =
+            float(*std::max_element(&predict_batch[n * predict_shape[1]],
+                                  &predict_batch[(n + 1) * predict_shape[1]]));
+
         score += max_value;
         count += 1;
       }
@@ -135,11 +126,10 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
 void CRNNRecognizer::LoadModel(const std::string &model_dir) {
 #ifndef SOC_MODE
   AnalysisConfig config;
-  config.SetModel(model_dir + "/model", model_dir + "/params");
+  config.set_model_dir(model_dir + "/rcnn_model");
 #else
   CxxConfig config;
-  config.set_model_file(model_dir + "/model");
-  config.set_param_file(model_dir + "/params");
+  config.set_model_dir(model_dir + "/rcnn_model");
   std::vector<Place> valid_places{Place{TARGET(kARM), PRECISION(kFloat)}};
   valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt64)});
   valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt32)});
