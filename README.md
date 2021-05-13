@@ -1,4 +1,4 @@
-# PaddleOCR-CppDemo
+# PaddleOCR-BM1684Demo
 这个是在比特大陆BM1684系列AI硬件上支持PaddleOCR的demo,可以支持x86(SC5)和arm(SE5/SM5)两类设备。
 
 ## 编译
