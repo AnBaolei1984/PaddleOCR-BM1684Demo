@@ -95,8 +95,6 @@ bool BMOCRRec::run(std::vector<std::vector<int>>& output_shapes,
   output_shapes.push_back(output_shape);
   int out_size = std::accumulate(output_shape.begin(), output_shape.end(), 1,
                                   std::multiplies<int>());
-  //std::shared_ptr<float> sh_result_ptr(new float[out_size]);
-  //float* result = sh_result_ptr.get();
   if (result_ != nullptr) {
     delete []result_;
   }

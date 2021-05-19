@@ -13,8 +13,10 @@
 // limitations under the License.
 
 #include <include/ocr_rec.h>
+#ifdef SOC_MODE
 #include "paddle_use_kernels.h"
 #include "paddle_use_ops.h"
+#endif
 
 namespace BMPaddleOCR {
 
@@ -31,7 +33,6 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     crop_img = GetRotateCropImage(srcimg, boxes[i]);
     float wh_ratio = float(crop_img.cols) / float(crop_img.rows);
     this->resize_op_.Run(crop_img, resize_img, wh_ratio);
-
     vector<cv::Mat> inputs;
     inputs.push_back(resize_img);
     bm_ocr_rec_->preprocess(inputs, this->mean_, this->scale_, this->is_scale_);
@@ -126,7 +127,7 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
 void CRNNRecognizer::LoadModel(const std::string &model_dir) {
 #ifndef SOC_MODE
   AnalysisConfig config;
-  config.set_model_dir(model_dir + "/rcnn_model");
+  config.SetModel(model_dir + "/rcnn_model");
 #else
   CxxConfig config;
   config.set_model_dir(model_dir + "/rcnn_model");

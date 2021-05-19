@@ -26,7 +26,8 @@ void DBDetector::Run(cv::Mat &img,
 
   img.copyTo(srcimg);
   this->resize_op_.Run(img, resize_img, this->max_side_len_, ratio_h, ratio_w);
-  cv::Mat real_input_img(640, 640, CV_8UC3, cv::Scalar(0, 0, 0));
+  cv::Mat real_input_img(this->max_side_len_,
+            this->max_side_len_, CV_8UC3, cv::Scalar(0, 0, 0));
   resize_img.copyTo(real_input_img(cv::Rect(0,
                                    0, resize_img.cols, resize_img.rows)));
   vector<cv::Mat> inputs;
