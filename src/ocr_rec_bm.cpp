@@ -91,7 +91,7 @@ bool BMOCRRec::run(std::vector<std::vector<int>>& output_shapes,
                         vector<float*>& results) {
   forward();
   vector<int> output_shape(output_shapes_[0]);
-  output_shape[3] = round(input_width_ / 4);
+  output_shape[2] = round(input_width_ / 4);
   output_shapes.push_back(output_shape);
   int out_size = std::accumulate(output_shape.begin(), output_shape.end(), 1,
                                   std::multiplies<int>());
@@ -102,20 +102,16 @@ bool BMOCRRec::run(std::vector<std::vector<int>>& output_shapes,
   float* output = reinterpret_cast<float*>(outputs_[0]);
   for (int i = 0; i < output_shape[0]; i++) {
     float* src_n = output +
-        i * output_shapes_[0][1] * output_shapes_[0][2] * output_shapes_[0][3];
+        i * output_shapes_[0][1] * output_shapes_[0][2];
     float* dst_n = result_ +
-        i * output_shape[1] * output_shape[2] * output_shape[3];
+        i * output_shape[1] * output_shape[2];
     for (int j = 0; j < output_shape[1]; j++) {
       float* src_c = src_n +
-              j * output_shapes_[0][2] * output_shapes_[0][3];
+              j * output_shapes_[0][2] ;
       float* dst_c = dst_n +
-              j * output_shape[2] * output_shape[3];
+              j * output_shape[2];
       for (int k = 0; k < output_shape[2]; k++) {
-        float* src_h = src_c + k * output_shapes_[0][3];
-        float* dst_h = dst_c + k * output_shape[3];
-        for (int l = 0; l < output_shape[3]; l++) {
-          dst_h[l] = src_h[l];
-        }
+        dst_c[k] = src_c[k];
       }
     }
   }

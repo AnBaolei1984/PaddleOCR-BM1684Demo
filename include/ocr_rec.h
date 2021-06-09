@@ -33,6 +33,7 @@
 
 #ifndef SOC_MODE
 #include "paddle_inference_api.h"
+using namespace paddle_infer;
 #else
 using namespace paddle::lite_api;
 #endif
@@ -48,6 +49,8 @@ public:
     this->device_id_ = device_id;
     this->cpu_math_library_num_threads_ = cpu_math_library_num_threads;
     this->label_list_ = Utility::ReadDict(label_path);
+    this->label_list_.insert(this->label_list_.begin(),
+                             "#"); // blank char for ctc
     this->label_list_.push_back(" ");
 
     std::string bmodel_path = model_dir + "/rec_cnn.bmodel";
@@ -63,7 +66,11 @@ public:
   void Run(std::vector<std::vector<std::vector<int>>> boxes, cv::Mat &img);
 
 private:
+#ifndef SOC_MODE
+  std::shared_ptr<Predictor> predictor_;
+#else
   std::shared_ptr<PaddlePredictor> predictor_;
+#endif
 
   int device_id_ = 0;
   int cpu_math_library_num_threads_ = 4;

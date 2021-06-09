@@ -25,9 +25,9 @@
 
 namespace BMPaddleOCR {
 
-class Config {
+class OCRConfig {
 public:
-  explicit Config(const std::string &config_file) {
+  explicit OCRConfig(const std::string &config_file) {
     config_map_ = LoadConfig(config_file);
 
     this->device_id = stoi(config_map_["device_id"]);

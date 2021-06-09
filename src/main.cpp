@@ -41,7 +41,8 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  Config config(argv[1]);
+  OCRConfig config(argv[1]);
+
   config.PrintConfigInfo();
   std::string img_path(argv[2]);
 

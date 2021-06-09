@@ -5,7 +5,7 @@ cpu_math_library_num_threads  4
 # det config
 max_side_len  640
 det_db_thresh  0.3
-det_db_box_thresh  0.5
+det_db_box_thresh  0.3
 det_db_unclip_ratio  1.6
 det_bmodel_path  ./models/det_db.bmodel
 

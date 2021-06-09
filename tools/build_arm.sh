@@ -1,5 +1,5 @@
-LIB_DIR=/home/bitmain/anbl/fae/bmnnsdk2-bm1684_v2.3.0/examples/PaddleOCR-CppDemo/Paddle_Lite_libs
-BM_DIR=/home/bitmain/anbl/fae/bmnnsdk2-bm1684_v2.3.0
+LIB_DIR=/home/bitmain/anbl/fae/bmnnsdk2-bm1684_v2.3.2/examples/YOLOv3_object/PaddleOCR-CppDemo/Paddle_Lite_libs
+BM_DIR=/home/bitmain/anbl/fae/bmnnsdk2-bm1684_v2.3.2
 
 BUILD_DIR=build
 rm -rf ${BUILD_DIR}

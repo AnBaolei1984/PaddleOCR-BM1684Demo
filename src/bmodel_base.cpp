@@ -73,8 +73,8 @@ void BmodelBase::load_model() {
   output_num_ = net_info_->output_num;
   for (int i = 0; i < output_num_; i++) {
     auto &output_shape = net_info_->stages[0].output_shapes[i];
-    std::vector<int> vec_output_shape(4);
-    for (int j = 0; j < 4; j++) {
+    std::vector<int> vec_output_shape(output_shape.num_dims);
+    for (int j = 0; j < output_shape.num_dims; j++) {
       vec_output_shape[j] = output_shape.dims[j];
     }
     output_shapes_.push_back(vec_output_shape);

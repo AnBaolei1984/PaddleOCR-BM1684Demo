@@ -41,102 +41,69 @@ void CRNNRecognizer::Run(std::vector<std::vector<std::vector<int>>> boxes,
     bm_ocr_rec_->run(output_shapes, results);
     auto input_names = this->predictor_->GetInputNames();
 #ifndef SOC_MODE
-    auto input_t = this->predictor_->GetInputTensor(input_names[0]);
+    auto input_t = this->predictor_->GetInputHandle(input_names[0]);
     input_t->Reshape({output_shapes[0][0], output_shapes[0][1],
-                        output_shapes[0][2], output_shapes[0][3]});
-    input_t->copy_from_cpu(results[0]);
-    this->predictor_->ZeroCopyRun();
+                        output_shapes[0][2]});
 #else
     auto input_t = this->predictor_->GetInput(0);
     input_t->Resize({output_shapes[0][0], output_shapes[0][1],
-                        output_shapes[0][2], output_shapes[0][3]});
+                        output_shapes[0][2]});
+#endif
     input_t->CopyFromCpu(results[0]);
     this->predictor_->Run();
-#endif
-
-    std::vector<int64_t> rec_idx;
+    std::vector<float> predict_batch;
     auto output_names = this->predictor_->GetOutputNames();
 #ifndef SOC_MODE
-    auto output_t = this->predictor_->GetOutputTensor(output_names[0]);
-    auto output_t_1 = this->predictor_->GetOutputTensor(output_names[1]);
+    auto output_t = this->predictor_->GetOutputHandle(output_names[0]);
 #else
     auto output_t = this->predictor_->GetOutput(0);
-    auto output_t_1 = this->predictor_->GetOutput(1);
 #endif
-    auto rec_idx_lod = output_t->lod();
-    auto shape_out = output_t->shape();
-    int out_num = std::accumulate(shape_out.begin(), shape_out.end(), 1,
+    auto predict_shape = output_t->shape();
+    int out_num = std::accumulate(predict_shape.begin(), predict_shape.end(), 1,
                                   std::multiplies<int>());
-    rec_idx.resize(out_num);
+    predict_batch.resize(out_num);
 #ifndef SOC_MODE
-    output_t->copy_to_cpu(rec_idx.data());
+    output_t->CopyToCpu(predict_batch.data());
 #else
-    auto* out_ptr = output_t->mutable_data<long>();
+    auto* out_ptr = output_t->mutable_data<float>();
     for (int j = 0; j < out_num; j++) {
-      rec_idx[j] = out_ptr[j];
+      predict_batch[j] = out_ptr[j];
     }
 #endif
-    std::vector<int> pred_idx;
-    for (int n = int(rec_idx_lod[0][0]); n < int(rec_idx_lod[0][1]); n++) {
-      pred_idx.push_back(int(rec_idx[n]));
-    }
-
-    if (pred_idx.size() < 1e-3)
-      continue;
-
-    index += 1;
-    std::cout << index << "\t";
-    for (int n = 0; n < pred_idx.size(); n++) {
-      std::cout << label_list_[pred_idx[n]];
-    }
-
-    std::vector<float> predict_batch;
-    auto predict_lod = output_t_1->lod();
-    auto predict_shape = output_t_1->shape();
-    int out_num_1 = std::accumulate(predict_shape.begin(), predict_shape.end(),
-                                    1, std::multiplies<int>());
-    predict_batch.resize(out_num_1);
-#ifndef SOC_MODE
-    output_t_1->copy_to_cpu(predict_batch.data());
-#else
-    output_t_1->CopyToCpu(predict_batch.data());
-#endif
+    std::vector<std::string> str_res;
     int argmax_idx;
-    int blank = predict_shape[1];
+    int last_index = 0;
     float score = 0.f;
     int count = 0;
     float max_value = 0.0f;
-    for (int n = predict_lod[0][0]; n < predict_lod[0][1] - 1; n++) {
-      argmax_idx =
-          int(Utility::argmax(&predict_batch[n * predict_shape[1]],
-                              &predict_batch[(n + 1) * predict_shape[1]]));
-      if (blank - 1 - argmax_idx > 1e-5) {
-        max_value =
-            float(*std::max_element(&predict_batch[n * predict_shape[1]],
-                                  &predict_batch[(n + 1) * predict_shape[1]]));
 
+    for (int n = 0; n < predict_shape[1]; n++) {
+      argmax_idx =
+          int(Utility::argmax(&predict_batch[n * predict_shape[2]],
+                              &predict_batch[(n + 1) * predict_shape[2]]));
+      max_value =
+          float(*std::max_element(&predict_batch[n * predict_shape[2]],
+                                  &predict_batch[(n + 1) * predict_shape[2]]));
+
+      if (argmax_idx > 0 && (!(n > 0 && argmax_idx == last_index))) {
         score += max_value;
         count += 1;
+        str_res.push_back(label_list_[argmax_idx]);
       }
+      last_index = argmax_idx;
     }
     score /= count;
+    for (int i = 0; i < str_res.size(); i++) {
+      std::cout << str_res[i];
+    }
     std::cout << "\tscore: " << score << std::endl;
   }
 }
 
 void CRNNRecognizer::LoadModel(const std::string &model_dir) {
 #ifndef SOC_MODE
-  AnalysisConfig config;
+  paddle_infer::Config  config;
   config.SetModel(model_dir + "/rcnn_model");
-#else
-  CxxConfig config;
-  config.set_model_dir(model_dir + "/rcnn_model");
-  std::vector<Place> valid_places{Place{TARGET(kARM), PRECISION(kFloat)}};
-  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt64)});
-  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt32)});
-  config.set_valid_places(valid_places);
-#endif
-#ifndef SOC_MODE
   config.DisableGpu();
   config.SetCpuMathLibraryNumThreads(this->cpu_math_library_num_threads_);
   config.SwitchUseFeedFetchOps(false);
@@ -144,12 +111,16 @@ void CRNNRecognizer::LoadModel(const std::string &model_dir) {
   config.SwitchIrOptim(true);
   config.EnableMemoryOptim();
   config.DisableGlogInfo();
+  this->predictor_ = CreatePredictor(config);
 #else
+  CxxConfig config;
+  config.set_model_dir(model_dir + "/rcnn_model");
+  std::vector<Place> valid_places{Place{TARGET(kARM), PRECISION(kFloat)}};
+  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt64)});
+  valid_places.push_back(Place{TARGET(kARM), PRECISION(kInt32)});
+  config.set_valid_places(valid_places);
   config.set_threads(this->cpu_math_library_num_threads_);
-#endif
-
   this->predictor_ = CreatePaddlePredictor(config);
-#ifdef SOC_MODE
   predictor_->SaveOptimizedModel(".",
                                 LiteModelType::kNaiveBuffer);
 #endif
